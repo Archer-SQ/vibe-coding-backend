@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
+    console.error('提交游戏记录失败:', error);
     
     return res.status(500).json(
       CommonErrors.internalServerError(requestId)
