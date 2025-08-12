@@ -16,7 +16,17 @@
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",
     "type-check": "tsc --noEmit",
     "db:seed": "ts-node config/seed.ts",
-    "db:test": "ts-node tests/setup.ts"
+    "db:test": "ts-node tests/setup.ts",
+    "git:setup-hooks": "bash scripts/setup-git-hooks.sh",
+    "git:feature": "git flow feature start",
+    "git:feature-finish": "git flow feature finish",
+    "git:release": "git flow release start",
+    "git:release-finish": "git flow release finish",
+    "git:hotfix": "git flow hotfix start",
+    "git:hotfix-finish": "git flow hotfix finish",
+    "version:patch": "npm version patch && git push origin --tags",
+    "version:minor": "npm version minor && git push origin --tags",
+    "version:major": "npm version major && git push origin --tags"
   },
   "keywords": [
     "game",

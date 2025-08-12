@@ -23,4 +23,20 @@ module.exports = {
     'no-var': 'error',
     'no-undef': 'off', // TypeScript handles this
   },
+  overrides: [
+    {
+      // 允许在服务器、脚本和测试文件中使用console
+      files: ['server.js', 'scripts/**/*.js', 'tests/**/*.ts', 'lib/utils/logger.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
+      // 测试文件中允许使用any类型
+      files: ['tests/**/*.ts', '**/*.test.ts'],
+      rules: {
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+  ],
 };
