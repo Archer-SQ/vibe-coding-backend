@@ -17,7 +17,7 @@ export interface RankingItem {
   deviceId: string;
   score: number;
   rank: number;
-  createdAt: Date;
+  updatedAt: Date; // 数据更新时间
 }
 
 // 设备统计类型

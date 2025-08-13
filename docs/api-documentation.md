@@ -165,13 +165,13 @@ curl "http://localhost:3000/api/game/ranking?type=weekly"
         "rank": 1,
         "deviceId": "abc123def456ghi789jkl012mno345pq",
         "score": 25600,
-        "createdAt": "2024-01-15T10:30:00.000Z"
+        "updatedAt": "2024-01-15T10:30:00.000Z"
       },
       {
         "rank": 2,
         "deviceId": "def456ghi789jkl012mno345pqabc123",
         "score": 23400,
-        "createdAt": "2024-01-14T15:20:00.000Z"
+        "updatedAt": "2024-01-14T15:20:00.000Z"
       }
     ],
     "count": 10

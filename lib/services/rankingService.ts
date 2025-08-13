@@ -18,7 +18,7 @@ export class RankingService {
         deviceId: stats.deviceId,
         score: stats.bestScore,
         rank: index + 1,
-        createdAt: stats.createdAt,
+        updatedAt: stats.updatedAt, // 使用更新时间而不是创建时间
       }));
 
       return rankingItems;
@@ -72,7 +72,7 @@ export class RankingService {
         deviceId: record._id,
         score: record.bestScore,
         rank: index + 1,
-        createdAt: record.createdAt,
+        updatedAt: record.createdAt, // 周榜使用游戏记录的创建时间
       }));
 
       return rankingItems;

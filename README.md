@@ -180,24 +180,47 @@ Content-Type: application/json
 
 ## 🚀 部署
 
-### Vercel 部署
+### 快速部署到 Vercel
 
-1. 连接 GitHub 仓库到 Vercel
-2. 配置环境变量
-3. 自动部署
+#### 方法一：通过 Vercel Dashboard（推荐）
+1. 将代码推送到 GitHub/GitLab/Bitbucket
+2. 在 [Vercel Dashboard](https://vercel.com/dashboard) 导入项目
+3. 配置环境变量（见下方）
+4. 点击部署
 
+#### 方法二：通过 Vercel CLI
 ```bash
-# 手动部署
+# 安装 Vercel CLI
+npm i -g vercel
+
+# 登录并部署
+vercel login
 vercel --prod
 ```
 
-### 环境变量配置
+### 必需的环境变量
+```
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/gamedb
+MONGODB_DB_NAME=gamedb
+```
 
-在 Vercel 控制台配置以下环境变量：
-- `MONGODB_URI`
-- `MONGODB_DB_NAME`
-- `UPSTASH_REDIS_REST_URL` (可选)
-- `UPSTASH_REDIS_REST_TOKEN` (可选)
+### 可选的环境变量
+```
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
+API_RATE_LIMIT=100
+ENABLE_CACHE=true
+ENABLE_ANALYTICS=true
+```
+
+### 📖 详细部署指南
+
+查看 [部署文档](docs/deployment.md) 获取完整的部署步骤，包括：
+- MongoDB Atlas 配置
+- Upstash Redis 设置
+- 环境变量详细说明
+- 故障排除指南
+- 性能优化建议
 
 ## 📈 性能优化
 
