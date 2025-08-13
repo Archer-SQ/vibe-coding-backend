@@ -22,15 +22,6 @@ class DatabaseConnection {
 
     try {
       const options: ConnectOptions = {
-        // 连接池配置
-        maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10'), // 最大连接数
-        minPoolSize: parseInt(process.env.MONGODB_MIN_POOL_SIZE || '2'),  // 最小连接数
-        maxIdleTimeMS: 300000, // 连接最大空闲时间（5分钟）
-        
-        // 超时配置
-        serverSelectionTimeoutMS: 10000, // 服务器选择超时
-        socketTimeoutMS: 0, // Socket超时（0表示无限制）
-        
         // 性能优化
         bufferCommands: false, // 禁用命令缓冲
         retryWrites: true, // 启用重试写入

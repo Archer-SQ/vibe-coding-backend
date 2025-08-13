@@ -22,20 +22,14 @@ const logger = winston.createLogger({
   defaultMeta: { service: 'vibe-coding-backend' },
   transports: [
     // 控制台输出
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
-    })
+    new winston.transports.Console()
   ]
 });
 
 // 生产环境添加文件日志
 if (process.env.NODE_ENV === 'production') {
   logger.add(new winston.transports.File({
-    filename: 'logs/error.log',
-    level: 'error'
+    filename: 'logs/error.log'
   }));
   
   logger.add(new winston.transports.File({
