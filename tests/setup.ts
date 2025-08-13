@@ -1,4 +1,5 @@
 import { connectDatabase, disconnectDatabase } from '../lib/database/connection';
+import { cacheService } from '../lib/services/cacheservice';
 
 // 测试环境配置
 beforeAll(async () => {
@@ -21,6 +22,10 @@ beforeAll(async () => {
 // 测试结束后清理
 afterAll(async () => {
   try {
+    // 清理缓存服务资源
+    cacheService.cleanup();
+    
+    // 关闭数据库连接
     await disconnectDatabase();
     console.log('✅ 测试数据库连接已关闭');
   } catch (error) {

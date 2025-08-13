@@ -1,4 +1,5 @@
 import { Redis } from '@upstash/redis';
+import { createHash } from 'crypto';
 
 // 缓存键命名规范
 export const CacheKeys = {
@@ -22,14 +23,39 @@ export const CacheTTL = {
   DEVICE_STATS: 3600,  // 1小时
   DEVICE_RANK: 600,    // 10分钟
   RATE_LIMIT: 60,      // 1分钟
+  HOT_DATA: 1800,      // 30分钟 - 热点数据
+  COLD_DATA: 7200,     // 2小时 - 冷数据
+} as const;
+
+// 缓存层级配置
+export const CacheLevel = {
+  L1_MEMORY: 'L1',     // 内存缓存
+  L2_REDIS: 'L2',      // Redis缓存
+} as const;
+
+// 缓存压缩配置
+export const CacheCompression = {
+  THRESHOLD: 1024,     // 超过1KB的数据进行压缩
+  ENABLED: true,       // 启用压缩
 } as const;
 
 export class CacheService {
   private redis: Redis | null = null;
   private isEnabled: boolean = false;
+  private memoryCache: Map<string, { data: any; expires: number; hits: number }> = new Map();
+  private cacheStats = {
+    hits: 0,
+    misses: 0,
+    sets: 0,
+    deletes: 0,
+    errors: 0
+  };
+  private maxMemoryCacheSize = 1000; // 内存缓存最大条目数
+  private cleanupTimer: NodeJS.Timeout | null = null; // 清理定时器
 
   constructor() {
     this.initializeRedis();
+    this.startCleanupTimer();
   }
 
   /**
@@ -44,17 +70,122 @@ export class CacheService {
         this.redis = new Redis({
           url: redisUrl,
           token: redisToken,
+          retry: {
+            retries: 3,
+            backoff: (retryCount: number) => Math.min(retryCount * 50, 500)
+          },
+          automaticDeserialization: false // 手动控制序列化
         });
         this.isEnabled = true;
-        console.log('Redis缓存服务初始化成功');
+        console.log('✅ Redis缓存服务初始化成功');
       } else {
         console.warn('Redis配置未找到，缓存功能已禁用');
         this.isEnabled = false;
       }
     } catch (error) {
-      console.error('Redis初始化失败:', error);
+      console.error('❌ Redis初始化失败:', error);
       this.isEnabled = false;
     }
+  }
+
+  /**
+   * 启动内存缓存清理定时器
+   */
+  private startCleanupTimer(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+    }
+    this.cleanupTimer = setInterval(() => {
+      this.cleanupMemoryCache();
+    }, 60000); // 每分钟清理一次
+  }
+
+  /**
+   * 清理过期的内存缓存
+   */
+  private cleanupMemoryCache(): void {
+    const now = Date.now();
+    for (const [key, value] of this.memoryCache.entries()) {
+      if (value.expires < now) {
+        this.memoryCache.delete(key);
+      }
+    }
+    
+    // 如果缓存条目过多，删除最少使用的
+    if (this.memoryCache.size > this.maxMemoryCacheSize) {
+      const entries = Array.from(this.memoryCache.entries())
+        .sort((a, b) => a[1].hits - b[1].hits)
+        .slice(0, this.memoryCache.size - this.maxMemoryCacheSize);
+      
+      for (const [key] of entries) {
+        this.memoryCache.delete(key);
+      }
+    }
+  }
+
+  /**
+   * 生成缓存键的哈希值
+   */
+  private hashKey(key: string): string {
+    return createHash('md5').update(key).digest('hex');
+  }
+
+  /**
+   * 压缩数据
+   */
+  private compressData(data: string): string {
+    // 简单的压缩实现，实际项目中可以使用更好的压缩算法
+    if (data.length > CacheCompression.THRESHOLD && CacheCompression.ENABLED) {
+      return JSON.stringify({ compressed: true, data: Buffer.from(data).toString('base64') });
+    }
+    return data;
+  }
+
+  /**
+   * 解压数据
+   */
+  private decompressData(data: string): string {
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed.compressed) {
+        return Buffer.from(parsed.data, 'base64').toString();
+      }
+    } catch {
+      // 如果解析失败，返回原始数据
+    }
+    return data;
+  }
+
+  /**
+   * 从内存缓存获取数据
+   */
+  private getFromMemoryCache<T>(key: string): T | null {
+    const cached = this.memoryCache.get(key);
+    if (cached && cached.expires > Date.now()) {
+      cached.hits++;
+      this.cacheStats.hits++;
+      return cached.data;
+    }
+    
+    if (cached) {
+      this.memoryCache.delete(key);
+    }
+    
+    this.cacheStats.misses++;
+    return null;
+  }
+
+  /**
+   * 设置内存缓存
+   */
+  private setToMemoryCache<T>(key: string, value: T, ttl: number): void {
+    const expires = Date.now() + (ttl * 1000);
+    this.memoryCache.set(key, {
+      data: value,
+      expires,
+      hits: 0
+    });
+    this.cacheStats.sets++;
   }
 
   /**
@@ -65,91 +196,136 @@ export class CacheService {
   }
 
   /**
-   * 获取缓存数据
+   * 多层缓存获取数据
    */
   async get<T>(key: string): Promise<T | null> {
-    if (!this.isAvailable()) {
+    if (!this.isEnabled) {
       return null;
     }
 
     try {
-      const startTime = Date.now();
-      const data = await this.redis!.get(key);
-      const duration = Date.now() - startTime;
-      
-      console.log(`缓存操作 GET [${key}] - 成功: ${data !== null}, 耗时: ${duration}ms`);
-      
-      return data as T;
+      // 先从内存缓存获取
+      const memoryResult = this.getFromMemoryCache<T>(key);
+      if (memoryResult !== null) {
+        return memoryResult;
+      }
+
+      // 从Redis获取
+      if (this.redis) {
+        const redisResult = await this.redis.get(key);
+        if (redisResult !== null) {
+          const decompressed = this.decompressData(redisResult as string);
+          const parsed = JSON.parse(decompressed);
+          
+          // 回写到内存缓存
+          this.setToMemoryCache(key, parsed, CacheTTL.HOT_DATA);
+          
+          this.cacheStats.hits++;
+          return parsed;
+        }
+      }
+
+      this.cacheStats.misses++;
+      return null;
     } catch (error) {
-      console.error(`缓存获取失败 [${key}]:`, error);
+      console.error('缓存获取失败:', error);
+      this.cacheStats.errors++;
       return null;
     }
   }
 
   /**
-   * 设置缓存数据
+   * 多层缓存设置数据
    */
   async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
-    if (!this.isAvailable()) {
+    if (!this.isEnabled) {
       return false;
     }
 
     try {
-      const startTime = Date.now();
-      
-      if (ttl) {
-        await this.redis!.setex(key, ttl, JSON.stringify(value));
-      } else {
-        await this.redis!.set(key, JSON.stringify(value));
+      const serialized = JSON.stringify(value);
+      const compressed = this.compressData(serialized);
+      const cacheTtl = ttl || CacheTTL.DEVICE_STATS;
+
+      // 设置到内存缓存
+      this.setToMemoryCache(key, value, cacheTtl);
+
+      // 设置到Redis
+      if (this.redis) {
+        if (ttl) {
+          await this.redis.setex(key, ttl, compressed);
+        } else {
+          await this.redis.set(key, compressed);
+        }
       }
-      
-      const duration = Date.now() - startTime;
-      console.log(`缓存操作 SET [${key}] - 成功: true, 耗时: ${duration}ms`);
-      
+
+      this.cacheStats.sets++;
       return true;
     } catch (error) {
-      console.error(`缓存设置失败 [${key}]:`, error);
+      console.error('缓存设置失败:', error);
+      this.cacheStats.errors++;
       return false;
     }
   }
 
   /**
-   * 删除缓存数据
+   * 删除缓存
    */
   async del(key: string): Promise<boolean> {
-    if (!this.isAvailable()) {
+    if (!this.isEnabled) {
       return false;
     }
 
     try {
-      const startTime = Date.now();
-      await this.redis!.del(key);
-      const duration = Date.now() - startTime;
-      
-      console.log(`缓存操作 DEL [${key}] - 成功: true, 耗时: ${duration}ms`);
-      
+      // 从内存缓存删除
+      this.memoryCache.delete(key);
+
+      // 从Redis删除
+      if (this.redis) {
+        await this.redis.del(key);
+      }
+
+      this.cacheStats.deletes++;
       return true;
     } catch (error) {
-      console.error(`缓存删除失败 [${key}]:`, error);
+      console.error('缓存删除失败:', error);
+      this.cacheStats.errors++;
       return false;
     }
   }
 
   /**
-   * 批量删除缓存（支持模式匹配）
+   * 批量删除匹配模式的缓存键
+   * @param pattern 匹配模式，如 'test:*'
+   * @returns 删除是否成功
    */
   async delPattern(pattern: string): Promise<boolean> {
-    if (!this.isAvailable()) {
-      return false;
-    }
-
     try {
-      // 注意：Upstash Redis 可能不支持 KEYS 命令
-      // 这里提供一个基础实现，实际使用时可能需要调整
-      console.warn(`批量删除缓存模式 [${pattern}] - 请确认Upstash支持此操作`);
+      // 从内存缓存中删除匹配的键
+      const memoryKeys = Array.from(this.memoryCache.keys());
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+      
+      for (const key of memoryKeys) {
+        if (regex.test(key)) {
+          this.memoryCache.delete(key);
+        }
+      }
+      
+      if (!this.isEnabled || !this.redis) {
+        return true;
+      }
+
+      // Redis 批量删除
+      const keys = await this.redis.keys(pattern);
+      if (keys && keys.length > 0) {
+        await this.redis.del(...keys);
+        this.cacheStats.deletes += keys.length;
+      }
+      
       return true;
     } catch (error) {
-      console.error(`批量删除缓存失败 [${pattern}]:`, error);
+      console.error('批量缓存删除失败:', error);
+      this.cacheStats.errors++;
       return false;
     }
   }
@@ -159,7 +335,7 @@ export class CacheService {
    */
   async getRankingCache(type: 'global' | 'weekly'): Promise<any[] | null> {
     const key = type === 'global' ? CacheKeys.RANKING_GLOBAL : CacheKeys.RANKING_WEEKLY;
-    return this.get<any[]>(key);
+    return await this.get<any[]>(key);
   }
 
   /**
@@ -167,80 +343,79 @@ export class CacheService {
    */
   async setRankingCache(type: 'global' | 'weekly', data: any[]): Promise<boolean> {
     const key = type === 'global' ? CacheKeys.RANKING_GLOBAL : CacheKeys.RANKING_WEEKLY;
-    return this.set(key, data, CacheTTL.RANKING);
+    return await this.set(key, data, CacheTTL.RANKING);
   }
 
   /**
    * 获取设备统计缓存
    */
   async getDeviceStatsCache(deviceId: string): Promise<any | null> {
-    const key = CacheKeys.DEVICE_STATS(deviceId);
-    return this.get<any>(key);
+    return await this.get(CacheKeys.DEVICE_STATS(deviceId));
   }
 
   /**
    * 设置设备统计缓存
    */
   async setDeviceStatsCache(deviceId: string, data: any): Promise<boolean> {
-    const key = CacheKeys.DEVICE_STATS(deviceId);
-    return this.set(key, data, CacheTTL.DEVICE_STATS);
+    return await this.set(CacheKeys.DEVICE_STATS(deviceId), data, CacheTTL.DEVICE_STATS);
   }
 
   /**
    * 获取设备排名缓存
    */
   async getDeviceRankCache(deviceId: string): Promise<number | null> {
-    const key = CacheKeys.DEVICE_RANK(deviceId);
-    return this.get<number>(key);
+    return await this.get<number>(CacheKeys.DEVICE_RANK(deviceId));
   }
 
   /**
    * 设置设备排名缓存
    */
   async setDeviceRankCache(deviceId: string, rank: number): Promise<boolean> {
-    const key = CacheKeys.DEVICE_RANK(deviceId);
-    return this.set(key, rank, CacheTTL.DEVICE_RANK);
+    return await this.set(CacheKeys.DEVICE_RANK(deviceId), rank, CacheTTL.DEVICE_RANK);
   }
 
   /**
    * 检查API限流
    */
   async checkRateLimit(deviceId: string, limit: number = 100): Promise<{ allowed: boolean; remaining: number }> {
-    if (!this.isAvailable()) {
+    if (!this.isEnabled || !this.redis) {
       return { allowed: true, remaining: limit };
     }
 
     try {
       const key = CacheKeys.RATE_LIMIT(deviceId);
-      const current = await this.redis!.incr(key);
+      const current = await this.redis.get(key);
       
-      if (current === 1) {
-        // 第一次请求，设置过期时间
-        await this.redis!.expire(key, CacheTTL.RATE_LIMIT);
+      if (current === null) {
+        // 首次请求
+        await this.redis.setex(key, CacheTTL.RATE_LIMIT, '1');
+        return { allowed: true, remaining: limit - 1 };
       }
       
-      const remaining = Math.max(0, limit - current);
-      const allowed = current <= limit;
+      const count = parseInt(current as string, 10);
+      if (count >= limit) {
+        return { allowed: false, remaining: 0 };
+      }
       
-      console.log(`缓存操作 RATE_LIMIT [${key}] - 允许: ${allowed}, 剩余: ${remaining}`);
+      // 增加计数
+      await this.redis.incr(key);
+      return { allowed: true, remaining: limit - count - 1 };
       
-      return { allowed, remaining };
     } catch (error) {
-      console.error(`限流检查失败 [${deviceId}]:`, error);
+      console.error('限流检查失败:', error);
+      this.cacheStats.errors++;
       return { allowed: true, remaining: limit };
     }
   }
 
   /**
-   * 清除所有排行榜缓存（当有新记录提交时）
+   * 清除排行榜缓存
    */
   async clearRankingCaches(): Promise<void> {
     await Promise.all([
       this.del(CacheKeys.RANKING_GLOBAL),
-      this.del(CacheKeys.RANKING_WEEKLY),
+      this.del(CacheKeys.RANKING_WEEKLY)
     ]);
-    
-    console.log('排行榜缓存已清除');
   }
 
   /**
@@ -250,27 +425,45 @@ export class CacheService {
     await Promise.all([
       this.del(CacheKeys.DEVICE_STATS(deviceId)),
       this.del(CacheKeys.DEVICE_RANK(deviceId)),
+      this.del(CacheKeys.RATE_LIMIT(deviceId))
     ]);
-    
-    console.log(`设备缓存已清除: ${deviceId}`);
   }
 
   /**
    * 获取缓存统计信息
    */
-  async getCacheStats(): Promise<{ available: boolean; connected: boolean }> {
-    if (!this.isAvailable()) {
-      return { available: false, connected: false };
-    }
+  async getCacheStats(): Promise<{ 
+    available: boolean; 
+    connected: boolean;
+    memoryCache: { size: number; maxSize: number };
+    stats: { hits: number; misses: number; sets: number; deletes: number; errors: number };
+  }> {
+    return {
+      available: this.isAvailable(),
+      connected: this.redis !== null,
+      memoryCache: {
+        size: this.memoryCache.size,
+        maxSize: this.maxMemoryCacheSize
+      },
+      stats: { 
+         hits: this.cacheStats.hits,
+         misses: this.cacheStats.misses,
+         sets: this.cacheStats.sets,
+         deletes: this.cacheStats.deletes,
+         errors: this.cacheStats.errors
+       }
+    };
+  }
 
-    try {
-      // 尝试执行一个简单的ping命令来检查连接
-      await this.redis!.ping();
-      return { available: true, connected: true };
-    } catch (error) {
-      console.error('Redis连接检查失败:', error);
-      return { available: true, connected: false };
+  /**
+   * 清理资源（用于测试环境）
+   */
+  cleanup(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
     }
+    this.memoryCache.clear();
   }
 }
 

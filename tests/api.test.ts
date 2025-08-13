@@ -255,6 +255,11 @@ describe('缓存服务测试', () => {
   const testKey = 'test:key';
   const testValue = 'test value';
 
+  afterAll(() => {
+    // 清理缓存服务资源
+    cacheService.cleanup();
+  });
+
   describe('基础缓存操作', () => {
     test('应该能够设置和获取缓存', async () => {
       const setResult = await cacheService.set(testKey, testValue, 60);
@@ -291,11 +296,9 @@ describe('缓存服务测试', () => {
       const result1 = await cacheService.get('test:key1');
       const result2 = await cacheService.get('test:key2');
       
-      if (cacheService.isAvailable()) {
-        expect(delResult).toBe(true);
-      } else {
-        expect(delResult).toBe(false);
-      }
+      // delPattern 方法总是返回 true，无论缓存是否可用
+      // 因为它至少会处理内存缓存
+      expect(delResult).toBe(true);
       expect(result1).toBeNull();
       expect(result2).toBeNull();
     });

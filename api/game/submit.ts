@@ -75,8 +75,8 @@ export default async function handler(
     // 使用导入的缓存服务实例
 
     // API限流检查
-    const isRateLimited = await cacheService.checkRateLimit(deviceId);
-    if (isRateLimited) {
+    const rateLimitResult = await cacheService.checkRateLimit(deviceId);
+    if (!rateLimitResult.allowed) {
       return res.status(429).json({
         success: false,
         error: {
