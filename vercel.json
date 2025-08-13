@@ -7,10 +7,6 @@
     }
   },
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "MONGODB_DB_NAME": "@mongodb_db_name",
-    "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
-    "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token",
     "API_RATE_LIMIT": "100",
     "ENABLE_ANALYTICS": "true",
     "ENABLE_CACHE": "true"
