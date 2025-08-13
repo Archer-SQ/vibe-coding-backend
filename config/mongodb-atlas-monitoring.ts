@@ -156,11 +156,7 @@ export class MongoAtlasMonitoring {
     }
     
     if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(this.connectionUri, {
-        maxPoolSize: 5,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000
-      });
+      await mongoose.connect(this.connectionUri);
     }
     
     this.isConnected = true;
@@ -477,7 +473,7 @@ export class MongoAtlasMonitoring {
           body: JSON.stringify(alertMessage)
         });
         
-        if (!response.ok) {
+        if (response.status !== 200) {
           throw new Error(`Webhook响应错误: ${response.status}`);
         }
       } catch (error) {

@@ -219,7 +219,7 @@ export class BackupRecoveryService {
       
       // 获取所有集合
       const collections = await mongoose.connection.db.listCollections().toArray();
-      backupInfo.collections = collections.map(col => col.name);
+      backupInfo.collections = collections.map((col: any) => col.name);
       
       // 创建备份文件路径
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -339,7 +339,7 @@ export class BackupRecoveryService {
       
       // 获取所有集合
       const collections = await mongoose.connection.db.listCollections().toArray();
-      backupInfo.collections = collections.map(col => col.name);
+      backupInfo.collections = collections.map((col: any) => col.name);
       
       // 创建备份文件路径
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
