@@ -82,14 +82,19 @@ export default async function rankingHandler(
         const rankingService = new RankingService();
         rankings = await rankingService.getRanking({ timeRange: type as 'all' | 'weekly' });
 
-       // 缓存排行榜数据
-       try {
-         const cacheType = type === 'all' ? 'global' : 'weekly';
-         await cacheService.setRankingCache(cacheType as 'global' | 'weekly', rankings);
-         console.log('排行榜数据已缓存', { type, count: rankings.length });
-       } catch (cacheError: any) {
-         console.warn('缓存写入失败', { error: cacheError?.message });
-       }
+       // 异步缓存排行榜数据，不阻塞响应
+       setImmediate(async () => {
+         try {
+           const cacheType = type === 'all' ? 'global' : 'weekly';
+           await cacheService.setRankingCache(cacheType as 'global' | 'weekly', rankings);
+           console.log('排行榜数据已缓存', { type, count: rankings.length });
+         } catch (cacheError: any) {
+           console.warn('排行榜缓存失败，但不影响响应', { 
+             type, 
+             error: cacheError?.message || '未知错误' 
+           });
+         }
+       });
      }
 
     console.log('排行榜查询成功', {
@@ -99,7 +104,8 @@ export default async function rankingHandler(
       cached
     });
 
-    return res.status(200).json({
+    // 先发送响应，避免缓存错误影响用户体验
+    const response = {
       success: true,
       data: {
         rankings,
@@ -108,7 +114,9 @@ export default async function rankingHandler(
         cached
       },
       timestamp: Date.now()
-    });
+    };
+
+    return res.status(200).json(response);
 
   } catch (error: any) {
     console.error('排行榜查询失败', { 
