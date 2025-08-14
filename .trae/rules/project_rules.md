@@ -15,7 +15,7 @@
 - **Web框架**：Express.js + Serverless Functions
 - **数据库**：MongoDB（主库）+ Redis（缓存）
 - **ODM**：Mongoose（类型安全的MongoDB访问）
-- **部署平台**：Vercel（Serverless Functions）
+- **部署平台**：Railway（Node.js 应用）
 - **数据库服务**：MongoDB Atlas（云端MongoDB服务）
 - **缓存服务**：Upstash Redis（Serverless Redis）
 
@@ -25,25 +25,21 @@
 - **类型检查**：TypeScript strict mode
 - **测试框架**：Jest + Supertest
 - **API文档**：OpenAPI
-- **监控日志**：Vercel Analytics + Winston
+- **监控日志**：Winston + Railway 内置监控
 
 ### 2.3 第三方服务
-- **CDN**：Vercel Edge Network
+- **CDN**：Railway 内置 CDN
 - **监控**：Sentry（错误追踪）
-- **分析**：Vercel Analytics
+- **分析**：Railway 内置分析
 
 ## 三、目录结构
 
 ```
 backend/
-├── api/                           # Vercel Serverless Functions
-│   ├── game/
-│   │   ├── submit.ts             # 提交游戏成绩
-│   │   ├── history/[deviceId].ts # 获取个人历史记录
-│   │   ├── stats/[deviceId].ts   # 获取个人统计数据
-│   │   └── ranking.ts            # 获取排行榜
-│   ├── health.ts                 # 健康检查
-│   └── sync.ts                   # 数据同步接口
+├── routes/                        # Express 路由
+│   ├── game.ts                   # 游戏相关路由
+│   ├── health.ts                 # 健康检查路由
+│   └── sync.ts                   # 数据同步路由
 ├── lib/                          # 核心业务逻辑
 │   ├── database/
 │   │   ├── connection.ts        # MongoDB连接配置
@@ -80,7 +76,7 @@ backend/
 │   └── deployment.md            # 部署文档
 ├── .env.example                 # 环境变量示例
 ├── .env.local                   # 本地环境变量
-├── vercel.json                  # Vercel配置
+├── railway.json                 # Railway配置（可选）
 ├── package.json
 ├── tsconfig.json
 ├── jest.config.js
@@ -571,7 +567,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - run: vercel --prod
+      - run: railway up
 ```
 
 ## 七、其他约定
@@ -588,8 +584,8 @@ REDIS_URL="redis://localhost:6379"
 UPSTASH_REDIS_REST_URL="https://your-redis.upstash.io"
 UPSTASH_REDIS_REST_TOKEN="your_redis_token"
 
-# Vercel配置
-VERCEL_TOKEN="your_vercel_token"
+# Railway配置
+RAILWAY_TOKEN="your_railway_token"
 
 # 第三方服务
 SENTRY_DSN="your_sentry_dsn"
@@ -623,7 +619,7 @@ ATLAS_PROJECT_ID="your_project_id"
 
 ### 7.4 监控与日志
 - **错误监控**：Sentry集成
-- **性能监控**：Vercel Analytics
+- **性能监控**：Railway 内置监控
 - **日志级别**：ERROR, WARN, INFO, DEBUG
 - **关键指标**：QPS、响应时间、错误率、缓存命中率
 

@@ -1,11 +1,11 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Request, Response } from 'express';
 import { connectDatabase } from '../../lib/database/connection';
 import { RankingService } from '../../lib/services/rankingService';
 import { cacheService } from '../../lib/services/cacheservice';
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
+export default async function rankingHandler(
+  req: Request,
+  res: Response
 ) {
   // 设置CORS头
   res.setHeader('Access-Control-Allow-Origin', '*');
