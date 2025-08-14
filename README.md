@@ -4,7 +4,7 @@
 
 ## ✨ 核心特性
 
-- 🚀 **Serverless 架构**：基于 Vercel Functions，支持自动扩缩容
+- 🚀 **Express 架构**：基于 Node.js Express，支持灵活部署
 - 🎯 **游客模式**：基于设备指纹识别，无需注册登录
 - 📊 **简化排行榜**：支持总榜和周榜前十查询
 - 💾 **最高分记录**：每设备只保留最高分数记录
@@ -16,17 +16,17 @@
 
 - **运行时**：Node.js 18+
 - **语言**：TypeScript
-- **框架**：Express.js + Vercel Functions
+- **框架**：Express.js
 - **数据库**：MongoDB Atlas
 - **ODM**：Mongoose
-- **部署**：Vercel
+- **部署**：Railway
 - **包管理**：pnpm
 
 ## 📁 项目结构
 
 ```
 backend/
-├── api/                    # Vercel API 端点
+├── routes/                 # Express 路由
 │   ├── game/
 │   │   ├── submit.ts      # 提交游戏成绩
 │   │   ├── ranking.ts     # 获取排行榜
@@ -180,22 +180,22 @@ Content-Type: application/json
 
 ## 🚀 部署
 
-### 快速部署到 Vercel
+### 快速部署到 Railway
 
-#### 方法一：通过 Vercel Dashboard（推荐）
-1. 将代码推送到 GitHub/GitLab/Bitbucket
-2. 在 [Vercel Dashboard](https://vercel.com/dashboard) 导入项目
-3. 配置环境变量（见下方）
-4. 点击部署
+#### 方法一：通过 Railway Dashboard（推荐）
+1. Fork 本项目到你的 GitHub
+2. 在 [Railway Dashboard](https://railway.app) 导入项目
+3. 配置环境变量
+4. 一键部署
 
-#### 方法二：通过 Vercel CLI
+#### 方法二：通过 Railway CLI
 ```bash
-# 安装 Vercel CLI
-npm i -g vercel
+# 安装 Railway CLI
+npm i -g @railway/cli
 
 # 登录并部署
-vercel login
-vercel --prod
+railway login
+railway up
 ```
 
 ### 必需的环境变量
@@ -233,7 +233,7 @@ ENABLE_ANALYTICS=true
 
 - **健康检查**：`/api/health` 端点
 - **错误日志**：Winston 日志记录
-- **性能监控**：Vercel Analytics
+- **性能监控**：Railway 内置监控
 - **数据库监控**：MongoDB Atlas 监控
 
 ## 🤝 贡献指南

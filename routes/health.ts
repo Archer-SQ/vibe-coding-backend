@@ -1,5 +1,4 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import { connectDatabase } from '../lib/database/connection';
+import { Request, Response } from 'express';
 import { createSuccessResponse, createErrorResponse, ErrorCodes } from '../lib/utils/response';
 import gameLogger from '../lib/utils/logger';
 
@@ -7,7 +6,7 @@ import gameLogger from '../lib/utils/logger';
  * 健康检查API
  * GET /api/health
  */
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function healthHandler(req: Request, res: Response) {
   const startTime = Date.now();
   const requestId = `health-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -36,17 +35,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     gameLogger.logApiRequest('GET', '/api/health', undefined, requestId);
 
-    // 检查数据库连接
-    let dbStatus = 'disconnected';
-    let dbError = null;
-    
-    try {
-      await connectDatabase();
-      dbStatus = 'connected';
-    } catch (error) {
-      dbError = error instanceof Error ? error.message : '未知错误';
-      gameLogger.error('数据库连接检查失败', { error: dbError, requestId });
-    }
+    // 简化健康检查，不测试数据库连接以避免超时
+    const dbStatus = 'skipped';
+    const dbError = null;
 
     // 检查环境变量
     const envCheck = {

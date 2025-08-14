@@ -27,7 +27,7 @@
 - 🔒 数据验证和错误处理
 - 📋 日志记录系统
 - 🧪 Jest 测试框架配置
-- 🚀 Vercel Serverless 部署配置
+- 🚀 Railway Node.js 部署配置
 - 🛠️ 本地开发环境支持
 - 📚 完整的API文档
 
@@ -39,7 +39,7 @@
 ### 技术栈
 - **后端框架**: Express.js + TypeScript
 - **数据库**: MongoDB + Mongoose
-- **部署平台**: Vercel Serverless Functions
+- **部署平台**: Railway Node.js 应用
 - **测试框架**: Jest + Supertest
 - **代码规范**: ESLint + Prettier
 - **包管理**: pnpm

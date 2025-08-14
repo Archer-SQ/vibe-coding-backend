@@ -129,8 +129,8 @@ curl -X POST http://localhost:3000/api/game/submit \
 
 ### 3. 部署到生产环境
 - 配置 MongoDB Atlas 连接
-- 设置 Vercel 环境变量
-- 部署到 Vercel
+- 设置 Railway 环境变量
+- 部署到 Railway
 
 ## 📞 故障排除
 

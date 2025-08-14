@@ -2,7 +2,7 @@
 
 ## 🎯 项目概述
 
-本项目是一个完整的手势飞机大战游戏后端服务，采用 TypeScript + Node.js + MongoDB 技术栈，部署在 Vercel Serverless 平台上。
+本项目是一个完整的手势飞机大战游戏后端服务，采用 TypeScript + Node.js + MongoDB 技术栈，部署在 Railway 平台上。
 
 ## ✅ 已完成功能
 
@@ -47,14 +47,14 @@
 - ✅ **TypeScript配置** (tsconfig.json)
 - ✅ **ESLint代码规范** (.eslintrc.js)
 - ✅ **Prettier代码格式化** (.prettierrc)
-- ✅ **Vercel部署配置** (vercel.json)
+- ✅ **Railway部署配置** (railway.json)
 - ✅ **包管理配置** (package.json)
 
 ## 🏗️ 项目架构
 
 ```
 backend/
-├── api/                    # Vercel Serverless Functions
+├── routes/                 # Express 路由
 │   ├── game/
 │   │   ├── submit.ts      # 游戏成绩提交
 │   │   ├── ranking.ts     # 排行榜查询
@@ -77,7 +77,7 @@ backend/
 - **运行时**: Node.js 18+
 - **数据库**: MongoDB + Mongoose ODM
 - **缓存**: Redis (Upstash)
-- **部署**: Vercel Serverless Functions
+- **部署**: Railway Node.js 应用
 - **包管理**: pnpm
 - **测试**: Jest + Supertest
 - **代码规范**: ESLint + Prettier
@@ -132,8 +132,8 @@ pnpm run type-check
 # 构建项目
 pnpm run build
 
-# 部署到Vercel
-vercel --prod
+# 部署到Railway
+railway up
 ```
 
 ## 📈 性能指标
@@ -146,7 +146,7 @@ vercel --prod
 ## 🔍 监控与日志
 
 - **错误监控**: 集成Sentry
-- **性能监控**: Vercel Analytics
+- **性能监控**: Railway 内置监控
 - **日志系统**: Winston结构化日志
 - **健康检查**: `/api/health`端点
 
