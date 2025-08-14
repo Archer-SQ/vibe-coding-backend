@@ -107,11 +107,11 @@ ehthumbs.db
 Thumbs.db
 
 # 部署相关
-.railway
+.render
 .render
 
 # Local development
 .env.local
 # 部署配置文件
-railway.json
+render.yaml
 render.yaml

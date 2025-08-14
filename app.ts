@@ -11,7 +11,13 @@ import submitHandler from './routes/game/submit';
 import rankingHandler from './routes/game/ranking';
 
 // 加载环境变量
-dotenv.config({ path: '.env.local' });
+if (process.env.NODE_ENV === 'production') {
+  // 生产环境使用系统环境变量
+  dotenv.config();
+} else {
+  // 开发环境使用本地配置文件
+  dotenv.config({ path: '.env.local' });
+}
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;

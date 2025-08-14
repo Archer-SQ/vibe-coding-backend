@@ -14,9 +14,9 @@
 - 更新了package.json脚本配置
 - 保持了所有原有功能（健康检查、游戏提交、排行榜等）
 
-## Railway 部署方案
+## Render 部署方案
 
-### 🚂 Railway 优势
+### 🎨 Render 优势
 - **部署简单**：一键部署，自动检测项目类型
 - **免费额度充足**：每月 500 小时运行时间
 - **性能优秀**：快速启动，低延迟
@@ -27,7 +27,7 @@
 
 ## 详细部署步骤
 
-### Railway 部署流程
+### Render 部署流程
 
 #### 1. 准备工作
 
@@ -41,23 +41,23 @@ curl http://localhost:3000/api/health
 
 # 确保项目已推送到GitHub
 git add .
-git commit -m "准备Railway部署"
+git commit -m "准备Render部署"
 git push origin main
 ```
 
-#### 2. 创建Railway项目
+#### 2. 创建Render项目
 
-1. 访问 [railway.app](https://railway.app)
+1. 访问 [dashboard.render.com](https://dashboard.render.com)
 2. 使用GitHub账户登录
 3. 验证邮箱
 4. 点击 "New Project"
 5. 选择 "Deploy from GitHub repo"
 6. 选择你的项目仓库
-7. Railway会自动检测Node.js项目
+7. Render会自动检测Node.js项目
 
 #### 3. 配置环境变量
 
-在Railway项目设置中添加以下环境变量：
+在Render项目设置中添加以下环境变量：
 
 ```env
 NODE_ENV=production
@@ -71,24 +71,24 @@ ENABLE_CACHE=false
 
 #### 4. 部署配置
 
-Railway会自动检测到你的`package.json`并使用正确的构建和启动命令：
+Render会自动检测到你的`package.json`并使用正确的构建和启动命令：
 - Build Command: `pnpm install`
 - Start Command: `pnpm run start`
 
 #### 5. 部署完成
 
-- Railway会自动构建和部署
-- 获取分配的域名（如：`your-app.railway.app`）
+- Render会自动构建和部署
+- 获取分配的域名（如：`your-app.onrender.com`）
 - 部署状态可在控制台实时查看
 
 #### 6. 验证部署
 
 ```bash
 # 测试健康检查
-curl https://your-app.railway.app/api/health
+curl https://your-app.onrender.com/api/health
 
 # 测试排行榜API
-curl https://your-app.railway.app/api/game/ranking?type=global&limit=10
+curl https://your-app.onrender.com/api/game/ranking?type=global&limit=10
 ```
 
 ### 免费MongoDB数据库方案
@@ -158,7 +158,7 @@ ENABLE_CACHE=false
 ### 1. 健康检查
 
 ```bash
-curl https://your-app.railway.app/api/health
+curl https://your-app.onrender.com/api/health
 ```
 
 预期响应：
@@ -186,7 +186,7 @@ curl https://your-app.railway.app/api/health
 ### 2. 游戏提交测试
 
 ```bash
-curl -X POST https://your-app.railway.app/api/game/submit \
+curl -X POST https://your-app.onrender.com/api/game/submit \
   -H "Content-Type: application/json" \
   -d '{
     "deviceId": "a1b2c3d4e5f6789012345678901234567890abcd",
@@ -197,18 +197,18 @@ curl -X POST https://your-app.railway.app/api/game/submit \
 ### 3. 排行榜测试
 
 ```bash
-curl https://your-app.railway.app/api/game/ranking?type=all&limit=10
+curl https://your-app.onrender.com/api/game/ranking?type=all&limit=10
 ```
 
 ## 成本分析
 
-### Railway 免费额度
+### Render 免费额度
 - **运行时间**：500小时/月（约20天24小时运行）
 - **内存**：512MB RAM
 - **CPU**：共享vCPU
 - **存储**：1GB 持久化存储
 - **带宽**：100GB/月 出站流量
-- **域名**：免费 .railway.app 子域名
+- **域名**：免费 .onrender.com 子域名
 - **数据库**：可连接外部数据库
 
 ### MongoDB Atlas 免费额度
@@ -226,7 +226,7 @@ curl https://your-app.railway.app/api/game/ranking?type=all&limit=10
 
 ## 监控和维护
 
-### Railway 内置监控
+### Render 内置监控
 - **实时监控**：CPU、内存、网络使用情况
 - **日志查看**：实时日志流，支持过滤和搜索
 - **部署历史**：版本管理和一键回滚
@@ -238,7 +238,7 @@ curl https://your-app.railway.app/api/game/ranking?type=all&limit=10
 项目已内置健康检查端点：
 ```bash
 # 检查服务状态
-curl https://your-app.railway.app/api/health
+curl https://your-app.onrender.com/api/health
 
 # 响应示例
 {
@@ -251,7 +251,7 @@ curl https://your-app.railway.app/api/health
 ```
 
 ### 日常维护
-- **监控日志**：定期查看 Railway 控制台日志
+- **监控日志**：定期查看 Render 控制台日志
 - **性能检查**：关注响应时间和错误率
 - **数据库监控**：通过 MongoDB Atlas 控制台监控数据库性能
 - **更新部署**：推送代码到 GitHub 自动触发部署
@@ -260,11 +260,11 @@ curl https://your-app.railway.app/api/health
 
 ### 常见问题及解决方案
 
-#### 1. Railway 部署失败
+#### 1. Render 部署失败
 **症状**：部署过程中出现错误
 ```bash
 # 解决步骤：
-1. 检查 Railway 部署日志
+1. 检查 Render 部署日志
 2. 验证 package.json 中的脚本配置
 3. 确认所有依赖都在 package.json 中
 4. 检查 Node.js 版本兼容性
@@ -292,12 +292,12 @@ curl https://your-app.railway.app/api/health
 # 解决步骤：
 1. 检查 CORS 配置
 2. 验证 API 端点 URL
-3. 查看 Railway 服务日志
+3. 查看 Render 服务日志
 4. 测试健康检查端点
 ```
 
 #### 4. 服务启动失败
-**症状**：Railway 显示服务无法启动
+**症状**：Render 显示服务无法启动
 ```bash
 # 解决步骤：
 1. 检查 PORT 环境变量设置
@@ -319,9 +319,9 @@ pnpm run dev
 curl http://localhost:3000/api/health
 ```
 
-#### Railway 日志查看
-```bash
-# 在 Railway 控制台查看：
+#### Render 日志查看
+
+# 在 Render 控制台查看：
 1. 进入项目 Dashboard
 2. 点击 "Deployments" 查看部署日志
 3. 点击 "Logs" 查看运行时日志
@@ -359,6 +359,6 @@ curl http://localhost:3000/api/health
 
 ## 总结
 
-通过以上步骤，你可以将手势飞机大战后端服务完全免费部署到云平台。推荐使用Railway作为主要部署平台，配合MongoDB Atlas免费数据库，可以满足开发和小规模生产需求。
+通过以上步骤，你可以将手势飞机大战后端服务完全免费部署到云平台。推荐使用Render作为主要部署平台，配合MongoDB Atlas免费数据库，可以满足开发和小规模生产需求。
 
 如需更高性能和稳定性，可以考虑升级到付费方案，月成本约$14，性价比很高。

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 免费部署脚本
-# 用于快速部署到Railway或其他免费平台
+# 用于快速部署到Render或其他免费平台
 
 set -e
 
@@ -80,22 +80,21 @@ EOF
     echo "✅ 已创建 .env.example 文件"
 fi
 
-# 创建Railway配置
-echo "🚂 创建Railway部署配置..."
-cat > railway.json << EOF
-{
-  "\$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
-  },
-  "deploy": {
-    "startCommand": "pnpm run start",
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
-  }
-}
+# 创建Render配置
+echo "🚂 创建Render部署配置..."
+cat > render.yaml << EOF
+services:
+  - type: web
+    name: vibe-coding-backend
+    env: node
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
 EOF
-echo "✅ 已创建 railway.json 配置"
+echo "✅ 已创建 render.yaml 配置"
 
 # 创建Dockerfile（可选）
 echo "🐳 创建Docker配置..."
@@ -143,10 +142,10 @@ echo "✅ 已创建 .dockerignore"
 
 # 更新.gitignore
 echo "📝 更新.gitignore..."
-if ! grep -q "railway.json" .gitignore 2>/dev/null; then
+if ! grep -q "render.yaml" .gitignore 2>/dev/null; then
     echo "" >> .gitignore
     echo "# 部署配置文件" >> .gitignore
-    echo "railway.json" >> .gitignore
+    echo "render.yaml" >> .gitignore
 fi
 echo "✅ 已更新 .gitignore"
 
@@ -160,14 +159,14 @@ echo "   - 访问 https://www.mongodb.com/atlas"
 echo "   - 创建免费账户和集群"
 echo "   - 获取连接字符串"
 echo ""
-echo "2. 🚂 部署到Railway："
-echo "   - 访问 https://railway.app"
+echo "2. 🚂 部署到Render："
+echo "   - 访问 https://render.com"
 echo "   - 使用GitHub登录"
-echo "   - 选择 'Deploy from GitHub repo'"
+echo "   - 选择 'New Web Service'"
 echo "   - 在环境变量中设置 MONGODB_URI 和 MONGODB_DB_NAME"
 echo ""
 echo "4. 🧪 部署后测试："
-echo "   - curl https://your-app.railway.app/api/health"
+echo "   - curl https://your-app.onrender.com/api/health"
 echo "   - 检查所有API端点是否正常工作"
 echo ""
 echo "📖 详细部署指南请查看: docs/free-deployment-guide.md"
