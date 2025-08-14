@@ -24,7 +24,7 @@ class DatabaseConnection {
       const options: ConnectOptions = {
         // 性能优化
         bufferCommands: false, // 禁用命令缓冲
-        retryWrites: true, // 启用重试写入
+        // retryWrites 应该在 URI 中设置，不在连接选项中
         
         // 读写偏好配置
         readPreference: (process.env.MONGODB_READ_PREFERENCE || 'primary') as any,
