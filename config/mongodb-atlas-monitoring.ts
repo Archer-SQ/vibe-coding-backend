@@ -3,8 +3,7 @@
  * 提供数据库性能监控、告警设置和健康检查功能
  */
 
-// 使用mongoose代替直接的mongodb驱动
-import mongoose from 'mongoose';
+import mongoose, { ConnectOptions } from 'mongoose';
 import { cacheService } from '../lib/services/cacheservice';
 
 // 监控配置
@@ -156,7 +155,9 @@ export class MongoAtlasMonitoring {
     }
     
     if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(this.connectionUri);
+      await mongoose.connect(this.connectionUri, {
+        // 移除readPreference选项
+      } as ConnectOptions);
     }
     
     this.isConnected = true;
@@ -473,8 +474,9 @@ export class MongoAtlasMonitoring {
           body: JSON.stringify(alertMessage)
         });
         
-        if (response.status !== 200) {
-          throw new Error(`Webhook响应错误: ${response.status}`);
+        const responseStatus = response.status;
+        if (responseStatus < 200 || responseStatus >= 300) {
+          throw new Error(`Webhook响应错误: ${responseStatus}`);
         }
       } catch (error) {
         console.error('发送Webhook告警失败:', error);
