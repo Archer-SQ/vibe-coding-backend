@@ -25,7 +25,16 @@
     "git:hotfix-finish": "git flow hotfix finish",
     "version:patch": "npm version patch && git push origin --tags",
     "version:minor": "npm version minor && git push origin --tags",
-    "version:major": "npm version major && git push origin --tags"
+    "version:major": "npm version major && git push origin --tags",
+    "deploy:render": "bash scripts/deploy-render.sh",
+    "deploy:check": "pnpm run lint && pnpm run type-check && pnpm run test && pnpm run build",
+    "deploy:prepare": "pnpm run deploy:check && git add . && git status",
+    "render:build": "pnpm install --frozen-lockfile && pnpm run build",
+    "render:start": "node server.js",
+    "render:health": "curl -f http://localhost:$PORT/health || exit 1",
+    "postinstall": "pnpm run build",
+    "prestart": "node -e \"console.log('🚀 Starting Vibe Coding Backend...')\"",
+    "prestop": "node -e \"console.log('🛑 Stopping Vibe Coding Backend...')\""
   },
   "keywords": [
     "game",

@@ -115,7 +115,7 @@ backend/
 - **运行时**：Node.js 18+
 - **语言**：TypeScript
 - **数据库**：MongoDB (Mongoose ODM)
-- **部署**：Railway Node.js 应用
+- **部署**：Render Node.js 应用
 - **开发工具**：ESLint, Prettier
 
 ## 📈 性能特点
@@ -130,7 +130,7 @@ backend/
 1. **前端游戏集成**：提供分数提交和排行榜查询功能
 2. **游客模式**：基于设备ID，无需用户注册
 3. **实时排行榜**：支持总榜和周榜查询
-4. **简单部署**：一键部署到Railway
+4. **简单部署**：一键部署到Render
 
 ## 📝 下一步建议
 

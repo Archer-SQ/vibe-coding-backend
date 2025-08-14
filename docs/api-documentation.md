@@ -12,7 +12,7 @@
 
 ### 🔗 服务地址
 - **本地开发**: `http://localhost:3000`
-- **生产环境**: `https://your-domain.railway.app`
+- **生产环境**: `https://your-domain.onrender.com`
 
 ## 🚀 快速开始
 
@@ -269,7 +269,7 @@ curl "http://localhost:3000/api/game/ranking?type=weekly"
 ```bash
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/gamedb
 NODE_ENV=production
-API_BASE_URL=https://your-domain.railway.app
+API_BASE_URL=https://your-domain.onrender.com
 ```
 
 ## 📞 技术支持

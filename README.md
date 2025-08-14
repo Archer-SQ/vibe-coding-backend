@@ -19,7 +19,7 @@
 - **框架**：Express.js
 - **数据库**：MongoDB Atlas
 - **ODM**：Mongoose
-- **部署**：Railway
+- **部署**：Render
 - **包管理**：pnpm
 
 ## 📁 项目结构
@@ -180,22 +180,22 @@ Content-Type: application/json
 
 ## 🚀 部署
 
-### 快速部署到 Railway
+### 快速部署到 Render
 
-#### 方法一：通过 Railway Dashboard（推荐）
+#### 方法一：通过 Render Dashboard（推荐）
 1. Fork 本项目到你的 GitHub
-2. 在 [Railway Dashboard](https://railway.app) 导入项目
+2. 在 [Render Dashboard](https://dashboard.render.com) 导入项目
 3. 配置环境变量
 4. 一键部署
 
-#### 方法二：通过 Railway CLI
+#### 方法二：通过 Render CLI
 ```bash
-# 安装 Railway CLI
-npm i -g @railway/cli
+# 安装 Render CLI
+npm i -g @render/cli
 
 # 登录并部署
-railway login
-railway up
+render login
+render deploy
 ```
 
 ### 必需的环境变量
@@ -233,7 +233,7 @@ ENABLE_ANALYTICS=true
 
 - **健康检查**：`/api/health` 端点
 - **错误日志**：Winston 日志记录
-- **性能监控**：Railway 内置监控
+- **性能监控**：Render 内置监控
 - **数据库监控**：MongoDB Atlas 监控
 
 ## 🤝 贡献指南

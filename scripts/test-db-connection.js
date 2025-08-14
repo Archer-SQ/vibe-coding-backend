@@ -16,23 +16,35 @@ async function testConnection() {
     // 连接配置
     const options = {
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 15000, // 增加超时时间
+      connectTimeoutMS: 15000,
       socketTimeoutMS: 45000,
       bufferCommands: false,
     };
 
-    await mongoose.connect(process.env.MONGODB_URI, options);
+    // 使用createConnection方式（与验证脚本一致）
+    const connection = await mongoose.createConnection(process.env.MONGODB_URI, options);
     
     console.log('✅ MongoDB连接成功！');
-    console.log('数据库名称:', mongoose.connection.db.databaseName);
-    console.log('连接状态:', mongoose.connection.readyState);
+    
+    // 等待连接完全建立
+    await new Promise((resolve) => {
+      if (connection.readyState === 1) {
+        resolve();
+      } else {
+        connection.once('connected', resolve);
+      }
+    });
+    
+    console.log('数据库名称:', connection.db?.databaseName || 'unknown');
+    console.log('连接状态:', connection.readyState);
     
     // 测试基本操作
-    const collections = await mongoose.connection.db.listCollections().toArray();
+    const collections = await connection.db.listCollections().toArray();
     console.log('📊 现有集合:', collections.map(c => c.name));
     
     // 创建测试集合（如果不存在）
-    const testCollection = mongoose.connection.db.collection('test');
+    const testCollection = connection.db.collection('test');
     await testCollection.insertOne({ 
       message: 'Hello MongoDB!', 
       timestamp: new Date(),
@@ -44,6 +56,10 @@ async function testConnection() {
     // 清理测试数据
     await testCollection.deleteMany({ source: 'connection-test' });
     console.log('🧹 测试数据已清理');
+    
+    // 关闭连接
+    await connection.close();
+    console.log('🔌 连接已关闭');
     
   } catch (error) {
     console.error('❌ MongoDB连接失败:', error.message);
