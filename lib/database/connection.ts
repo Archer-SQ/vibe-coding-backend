@@ -25,15 +25,6 @@ class DatabaseConnection {
         // 性能优化
         bufferCommands: false, // 禁用命令缓冲
         // retryWrites 应该在 URI 中设置，不在连接选项中
-        
-        // 读写偏好配置
-        readPreference: (process.env.MONGODB_READ_PREFERENCE || 'primary') as any,
-        readConcern: { level: 'local' } as any, // 读关注级别
-        writeConcern: { 
-          w: 1, // 写关注级别
-          j: false, // 禁用日志确认以提高性能
-          wtimeout: 10000 // 写超时
-        } as any
       };
 
       const mongoUri = process.env.MONGODB_URI;

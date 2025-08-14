@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Request, Response } from 'express';
 import { connectDatabase } from '../../lib/database/connection';
 import { GameService } from '../../lib/services/gameService';
 import { cacheService } from '../../lib/services/cacheservice';
@@ -9,9 +9,9 @@ interface GameSubmissionRequest {
   score: number;
 }
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
+export default async function submitHandler(
+  req: Request,
+  res: Response
 ) {
   // 设置CORS头
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -71,8 +71,6 @@ export default async function handler(
         timestamp: Date.now()
       });
     }
-
-    // 使用导入的缓存服务实例
 
     // API限流检查
     const rateLimitResult = await cacheService.checkRateLimit(deviceId);

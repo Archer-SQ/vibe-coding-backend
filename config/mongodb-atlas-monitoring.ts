@@ -474,9 +474,9 @@ export class MongoAtlasMonitoring {
           body: JSON.stringify(alertMessage)
         });
         
-        const responseStatus = response.status;
-        if (responseStatus < 200 || responseStatus >= 300) {
-          throw new Error(`Webhook响应错误: ${responseStatus}`);
+        // 简化响应检查，避免类型错误
+        if (response.status < 200 || response.status >= 300) {
+          throw new Error(`Webhook响应错误: ${response.status}`);
         }
       } catch (error) {
         console.error('发送Webhook告警失败:', error);

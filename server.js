@@ -67,20 +67,20 @@ const loadApiRoutes = () => {
         if (typeof handlerFunc === 'function') {
           app.all(routePath, async (req, res) => {
              try {
-               const vercelReq = {
+               const apiReq = {
                  ...req,
                  query: { ...req.query, ...req.params },
                  body: req.body
                };
                
-               const vercelRes = {
-                 status: (code) => { res.status(code); return vercelRes; },
-                 json: (data) => { res.json(data); return vercelRes; },
-                 send: (data) => { res.send(data); return vercelRes; },
-                 setHeader: (name, value) => { res.setHeader(name, value); return vercelRes; }
+               const apiRes = {
+                 status: (code) => { res.status(code); return apiRes; },
+                 json: (data) => { res.json(data); return apiRes; },
+                 send: (data) => { res.send(data); return apiRes; },
+                 setHeader: (name, value) => { res.setHeader(name, value); return apiRes; }
                };
                
-               await handlerFunc(vercelReq, vercelRes);
+               await handlerFunc(apiReq, apiRes);
              } catch (error) {
                console.error(`API错误 ${routePath}:`, error);
                res.status(500).json({
