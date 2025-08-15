@@ -9,6 +9,7 @@ RUN apk add --no-cache python3 make g++
 
 # 安装pnpm (指定版本以确保兼容性)
 RUN npm install -g pnpm@10.14.0
+RUN pnpm add -D typescript@5.3.0
 
 # 复制package文件
 COPY package.json pnpm-lock.yaml ./
@@ -17,7 +18,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm config set registry https://registry.npmmirror.com
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile --production=false
+RUN pnpm install --frozen-lockfile --prod
 
 # 复制源代码
 COPY . .

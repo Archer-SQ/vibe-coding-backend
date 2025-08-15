@@ -22,7 +22,7 @@
       "@/tests/*": ["./tests/*"]
     },
     "types": ["node", "jest"],
-    "declaration": true,
+    "declaration": false,
     "outDir": "./dist",
     "rootDir": "."
   },
