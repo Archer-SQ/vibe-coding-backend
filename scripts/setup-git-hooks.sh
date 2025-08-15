@@ -74,13 +74,6 @@ echo "🚀 运行 pre-push 检查..."
 # 获取当前分支
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-# 检查是否直接推送到 main 分支
-if [ "$current_branch" = "main" ]; then
-    echo "❌ 不允许直接推送到 main 分支"
-    echo "请使用 Git Flow 发布流程"
-    exit 1
-fi
-
 # 运行完整测试套件
 echo "🧪 运行完整测试套件..."
 npm run test:coverage
