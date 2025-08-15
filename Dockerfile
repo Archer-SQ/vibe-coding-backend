@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++
 
 # 安装pnpm (指定版本以确保兼容性)
-RUN npm install -g pnpm@8.15.0
+RUN npm install -g pnpm@10.14.0
 
 # 复制package文件
 COPY package.json pnpm-lock.yaml ./
