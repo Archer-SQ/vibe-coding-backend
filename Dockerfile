@@ -4,16 +4,20 @@ FROM node:18-alpine
 # 设置工作目录
 WORKDIR /app
 
-# 安装pnpm
-RUN npm install -g pnpm
+# 安装必要的系统依赖
+RUN apk add --no-cache python3 make g++
+
+# 安装pnpm (指定版本以确保兼容性)
+RUN npm install -g pnpm@8.15.0
 
 # 复制package文件
-COPY package*.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml ./
 
+# 设置npm镜像源
 RUN pnpm config set registry https://registry.npmmirror.com
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --production=false
 
 # 复制源代码
 COPY . .
