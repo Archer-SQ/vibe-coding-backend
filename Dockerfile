@@ -17,7 +17,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm config set registry https://registry.npmmirror.com
 
 # 安装依赖
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile
 
 # 复制源代码
 COPY . .
