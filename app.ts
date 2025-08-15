@@ -41,28 +41,28 @@ app.use(compression());
 // CORS配置
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // 开发环境：允许所有localhost和127.0.0.1的端口
-    if (process.env.NODE_ENV === 'development') {
-      if (!origin || 
-          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
-          ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 
-           'http://localhost:8080', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 
-           'http://127.0.0.1:5173', 'http://127.0.0.1:8080'].includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    // 允许的域名列表
+    const allowedOrigins = [
+      // 生产环境前端域名
+      'https://vibe-coding-frontend.vercel.app',
+      // 开发环境域名
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:8080'
+    ];
+    
+    // 如果没有origin（比如Postman等工具）或者在允许列表中，则允许
+    if (!origin || allowedOrigins.includes(origin) || 
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      callback(null, true);
     } else {
-      // 生产环境：允许特定域名
-      const allowedOrigins = [
-        'https://vibe-coding-frontend.vercel.app',
-      ];
-      
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
