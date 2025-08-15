@@ -62,33 +62,10 @@ export class CacheService {
    * 初始化Redis连接
    */
   private initializeRedis(): void {
-    try {
-      const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-      const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-      if (redisUrl && redisToken) {
-        this.redis = new Redis({
-          url: redisUrl,
-          token: redisToken,
-          retry: {
-            retries: 3,
-            backoff: (retryCount: number) => Math.min(retryCount * 50, 500)
-          },
-          automaticDeserialization: false // 手动控制序列化
-        });
-        console.log('✅ Redis缓存服务初始化成功');
-      } else {
-        console.warn('⚠️ Redis配置未找到，使用内存缓存模式');
-        this.redis = null;
-      }
-      
-      // 无论Redis是否可用，都启用缓存服务（至少有内存缓存）
-      this.isEnabled = true;
-    } catch (error) {
-      console.error('❌ Redis初始化失败，降级到内存缓存:', error);
-      this.redis = null;
-      this.isEnabled = true; // 仍然启用内存缓存
-    }
+    // 暂时禁用Redis缓存，只使用内存缓存
+    console.warn('⚠️ Redis缓存已禁用，使用内存缓存模式');
+    this.redis = null;
+    this.isEnabled = true; // 启用内存缓存
   }
 
   /**

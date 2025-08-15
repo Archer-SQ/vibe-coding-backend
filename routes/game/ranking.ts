@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { connectDatabase } from '../../lib/database/connection';
 import { RankingService } from '../../lib/services/rankingService';
-import { cacheService } from '../../lib/services/cacheservice';
 
 export default async function rankingHandler(
   req: Request,
@@ -55,63 +54,29 @@ export default async function rankingHandler(
       });
     }
 
-    // 使用导入的缓存服务实例
-    let rankings: any[] = [];
-    let cached = false;
+    // 连接数据库
+    await connectDatabase();
 
-    // 尝试从缓存获取排行榜数据
-     try {
-       const cacheType = type === 'all' ? 'global' : 'weekly';
-       const cachedRankings = await cacheService.getRankingCache(cacheType as 'global' | 'weekly');
-       
-       if (cachedRankings && cachedRankings.length > 0) {
-         rankings = cachedRankings.slice(0, limitNum);
-         cached = true;
-         console.log('从缓存获取排行榜数据', { type, count: rankings.length });
-       }
-     } catch (cacheError: any) {
-       console.warn('缓存读取失败', { error: cacheError?.message });
-     }
-
-     // 如果缓存中没有数据，从数据库查询
-     if (!cached) {
-       // 连接数据库
-       await connectDatabase();
-
-       // 获取排行榜数据
-        const rankingService = new RankingService();
-        rankings = await rankingService.getRanking({ timeRange: type as 'all' | 'weekly' });
-
-       // 异步缓存排行榜数据，不阻塞响应
-       setImmediate(async () => {
-         try {
-           const cacheType = type === 'all' ? 'global' : 'weekly';
-           await cacheService.setRankingCache(cacheType as 'global' | 'weekly', rankings);
-           console.log('排行榜数据已缓存', { type, count: rankings.length });
-         } catch (cacheError: any) {
-           console.warn('排行榜缓存失败，但不影响响应', { 
-             type, 
-             error: cacheError?.message || '未知错误' 
-           });
-         }
-       });
-     }
+    // 直接从数据库获取排行榜数据
+    const rankingService = new RankingService();
+    const rankings = await rankingService.getRanking({ timeRange: type as 'all' | 'weekly' });
+    
+    // 应用限制数量
+    const limitedRankings = rankings.slice(0, limitNum);
 
     console.log('排行榜查询成功', {
       type,
       limit: limitNum,
-      resultCount: rankings.length,
-      cached
+      resultCount: limitedRankings.length
     });
 
-    // 先发送响应，避免缓存错误影响用户体验
+    // 发送响应
     const response = {
       success: true,
       data: {
-        rankings,
-        total: rankings.length,
-        type: type as string,
-        cached
+        rankings: limitedRankings,
+        total: limitedRankings.length,
+        type: type as string
       },
       timestamp: Date.now()
     };
