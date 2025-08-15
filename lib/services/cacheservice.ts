@@ -76,15 +76,18 @@ export class CacheService {
           },
           automaticDeserialization: false // 手动控制序列化
         });
-        this.isEnabled = true;
         console.log('✅ Redis缓存服务初始化成功');
       } else {
-        console.warn('Redis配置未找到，缓存功能已禁用');
-        this.isEnabled = false;
+        console.warn('⚠️ Redis配置未找到，使用内存缓存模式');
+        this.redis = null;
       }
+      
+      // 无论Redis是否可用，都启用缓存服务（至少有内存缓存）
+      this.isEnabled = true;
     } catch (error) {
-      console.error('❌ Redis初始化失败:', error);
-      this.isEnabled = false;
+      console.error('❌ Redis初始化失败，降级到内存缓存:', error);
+      this.redis = null;
+      this.isEnabled = true; // 仍然启用内存缓存
     }
   }
 

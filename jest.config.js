@@ -19,7 +19,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/lib/$1',
     '^@/api/(.*)$': '<rootDir>/api/$1',
     '^@/config/(.*)$': '<rootDir>/config/$1',

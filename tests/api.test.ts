@@ -266,11 +266,13 @@ describe('缓存服务测试', () => {
       const result = await cacheService.get(testKey);
       
       if (cacheService.isAvailable()) {
+        // Redis可用时，应该正常工作
         expect(setResult).toBe(true);
         expect(result).toBe(testValue);
       } else {
-        expect(setResult).toBe(false);
-        expect(result).toBeNull();
+        // Redis不可用时，仍然使用内存缓存，所以应该正常工作
+        expect(setResult).toBe(true);
+        expect(result).toBe(testValue);
       }
     });
 
@@ -280,9 +282,11 @@ describe('缓存服务测试', () => {
       const result = await cacheService.get(testKey);
       
       if (cacheService.isAvailable()) {
+        // Redis可用时，删除操作应该成功
         expect(delResult).toBe(true);
       } else {
-        expect(delResult).toBe(false);
+        // Redis不可用时，仍然可以删除内存缓存
+        expect(delResult).toBe(true);
       }
       expect(result).toBeNull();
     });
@@ -314,11 +318,13 @@ describe('缓存服务测试', () => {
       const result = await cacheService.getRankingCache('global');
       
       if (cacheService.isAvailable()) {
+        // Redis可用时，应该正常工作
         expect(setResult).toBe(true);
         expect(result).toEqual(rankingData);
       } else {
-        expect(setResult).toBe(false);
-        expect(result).toBeNull();
+        // Redis不可用时，仍然使用内存缓存
+        expect(setResult).toBe(true);
+        expect(result).toEqual(rankingData);
       }
     });
   });
@@ -336,11 +342,13 @@ describe('缓存服务测试', () => {
       const result = await cacheService.getDeviceStatsCache(deviceId);
       
       if (cacheService.isAvailable()) {
+        // Redis可用时，应该正常工作
         expect(setResult).toBe(true);
         expect(result).toEqual(statsData);
       } else {
-        expect(setResult).toBe(false);
-        expect(result).toBeNull();
+        // Redis不可用时，仍然使用内存缓存
+        expect(setResult).toBe(true);
+        expect(result).toEqual(statsData);
       }
     });
   });
