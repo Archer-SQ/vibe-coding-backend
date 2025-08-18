@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { connectDatabase } from '../../lib/database/connection';
 import { GameService } from '../../lib/services/gameService';
-import { cacheService } from '../../lib/services/cacheservice';
 import { validateDeviceId } from '../../lib/utils/deviceId';
 
 interface GameSubmissionRequest {
@@ -13,11 +12,6 @@ export default async function submitHandler(
   req: Request,
   res: Response
 ) {
-  // 设置CORS头
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -72,40 +66,12 @@ export default async function submitHandler(
       });
     }
 
-    // API限流检查
-    const rateLimitResult = await cacheService.checkRateLimit(deviceId);
-    if (!rateLimitResult.allowed) {
-      return res.status(429).json({
-        success: false,
-        error: {
-          code: 'RATE_LIMIT_EXCEEDED',
-          message: '请求过于频繁，请稍后再试'
-        },
-        timestamp: Date.now()
-      });
-    }
-
     // 连接数据库
     await connectDatabase();
 
     // 提交游戏记录
     const gameService = new GameService();
     const result = await gameService.submitGameRecord({ deviceId, score });
-
-    // 更新缓存
-    try {
-      // 清除相关缓存
-      await cacheService.clearDeviceCaches(deviceId);
-      await cacheService.clearRankingCaches();
-      
-      console.log('缓存更新成功', { deviceId, score });
-    } catch (cacheError: any) {
-      // 缓存错误不影响主要功能
-      console.warn('缓存更新失败', { 
-        deviceId, 
-        error: cacheError?.message || '未知错误'
-      });
-    }
 
     console.log('游戏记录提交成功', {
       deviceId,

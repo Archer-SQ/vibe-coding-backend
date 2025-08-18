@@ -40,16 +40,31 @@ app.use(compression());
 
 // CORS配置
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001', 
-    'http://localhost:5173',  // Vite默认端口
-    'http://localhost:8080',  // Vue CLI默认端口
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:8080'
-  ],
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // 允许的域名列表
+    const allowedOrigins = [
+      // 生产环境前端域名
+      'https://vibe-coding-frontend.vercel.app',
+      // 开发环境域名
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:8080'
+    ];
+    
+    // 如果没有origin（比如Postman等工具）或者在允许列表中，则允许
+    if (!origin || allowedOrigins.includes(origin) || 
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,

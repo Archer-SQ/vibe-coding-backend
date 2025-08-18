@@ -1,29 +1,43 @@
-# 使用官方Node.js运行时作为基础镜像
-FROM node:18-alpine
+# ===== build 阶段 =====
+FROM node:18-alpine AS builder
 
-# 设置工作目录
 WORKDIR /app
 
-# 安装必要的系统依赖
+# 安装编译所需工具
 RUN apk add --no-cache python3 make g++
 
-# 安装pnpm (指定版本以确保兼容性)
-RUN npm install -g pnpm@8.15.0
+# 安装 pnpm
+RUN npm install -g pnpm@10.14.0
 
-# 复制package文件
+# 先复制依赖文件
 COPY package.json pnpm-lock.yaml ./
 
-# 设置npm镜像源
-RUN pnpm config set registry https://registry.npmmirror.com
+# 安装依赖时跳过 postinstall（否则会提前触发 tsc）
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# 安装依赖
-RUN pnpm install --frozen-lockfile --production=false
-
-# 复制源代码
+# 复制源码
 COPY . .
 
-# 暴露端口
-EXPOSE 3000
+# 手动构建
+RUN pnpm run build
 
-# 启动应用
-CMD ["pnpm", "run", "start"]
+
+# ===== 运行阶段 =====
+FROM node:18-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm@10.14.0
+
+# 只安装生产依赖，跳过 postinstall
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+
+# 拷贝 build 阶段的编译产物
+COPY --from=builder /app/dist ./dist
+
+# 如果还有运行时需要的非编译文件，可以额外拷贝
+COPY --from=builder /app/package.json ./
+
+EXPOSE 3000
+CMD ["node", "dist/app.js"]

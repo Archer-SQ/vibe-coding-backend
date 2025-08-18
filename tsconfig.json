@@ -6,7 +6,7 @@
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
+    "noEmit": false,
     "esModuleInterop": true,
     "module": "commonjs",
     "moduleResolution": "node",
@@ -22,7 +22,7 @@
       "@/tests/*": ["./tests/*"]
     },
     "types": ["node", "jest"],
-    "declaration": true,
+    "declaration": false,
     "outDir": "./dist",
     "rootDir": "."
   },
